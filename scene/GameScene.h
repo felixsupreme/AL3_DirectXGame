@@ -14,6 +14,8 @@
 /// </summary>
 class GameScene {
 
+
+
 public: // メンバ関数
 	/// <summary>
 	/// コンストクラタ
@@ -48,4 +50,18 @@ private: // メンバ変数
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
+	/// 
+	//背景
+	uint32_t textureHandleBG_ = 0;
+	Sprite* spriteBG_ = nullptr;
+
+	//カメラ
+	ViewProjection viewProjection_;
+
+	//ステージ
+	uint32_t textureHandleStage_ = 0;
+	Model* modelStage_ = nullptr;
+	WorldTransform worldTransformStage_;
+
+
 };
