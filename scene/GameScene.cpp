@@ -11,6 +11,8 @@ GameScene::~GameScene() {
 	delete spriteBG_; 
 	//ステージ
 	delete modelStage_;
+	//プレイヤー
+	delete modelPlayer_;
 
 }
 //初期化
@@ -45,11 +47,48 @@ void GameScene::Initialize() {
 	//変換行列を定数バッファに転送
 	worldTransformStage_.TransferMatrix();
 
+	//プレイヤー
+	textureHandlePlayer_ = TextureManager::Load("player.png");
+	modelPlayer_ = Model::Create();
+	worldTransformPlayer_.scale_ = {0.5f, 0.5f, 0.5f};
+	worldTransformPlayer_.Initialize();
+
 
 }
 //更新
-void GameScene::Update() {}
-//描画
+void GameScene::Update() { 
+	
+	PlayerUpdate();
+
+
+}
+
+void GameScene::PlayerUpdate() {
+	if (input_->PushKey(DIK_RIGHT)) {
+		worldTransformPlayer_.translation_.x += 0.1f;
+
+	}
+
+	if (input_->PushKey(DIK_LEFT)) {
+		worldTransformPlayer_.translation_.x -= 0.1f;
+	}
+
+		if (worldTransformPlayer_.translation_.x<-4) {
+			worldTransformPlayer_.translation_.x == -4;
+		}
+		if (worldTransformPlayer_.translation_.x>4) {
+			worldTransformPlayer_.translation_.x == 4;
+		}
+
+	worldTransformPlayer_.matWorld_ = MakeAffineMatrix(
+	    worldTransformPlayer_.scale_, worldTransformPlayer_.rotation_,
+	    worldTransformPlayer_.translation_);
+
+	worldTransformPlayer_.TransferMatrix();
+
+}
+
+    //描画
 void GameScene::Draw() {
 
 	
@@ -78,6 +117,9 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 	modelStage_->Draw(worldTransformStage_, viewProjection_, textureHandleStage_);
+
+	//プレイヤー
+	modelStage_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
