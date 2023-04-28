@@ -2,6 +2,7 @@
 #include "TextureManager.h"
 #include "MathUtilityForText.h"
 #include <cassert>
+#include"time.h"
 
 //コンストラクタ
 GameScene::GameScene() {}
@@ -15,6 +16,8 @@ GameScene::~GameScene() {
 	delete modelPlayer_;
 	//ビーム
 	delete modelBeam_;
+	//エネミー
+	delete modelEnemy_;
 
 
 }
@@ -24,6 +27,8 @@ void GameScene::Initialize() {
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
+
+	srand((unsigned int)time(NULL));
 
 	//背景
 	textureHandleBG_ = TextureManager::Load("bg.jpg");
@@ -62,6 +67,13 @@ void GameScene::Initialize() {
 	worldTransformBeam_.scale_ = {0.2f, 0.2f, 0.2f};
 	worldTransformBeam_.Initialize();
 	
+	//エネミー
+	textureHandleEnemy_ = TextureManager::Load("enemy.png");
+	modelEnemy_ = Model::Create();
+	worldTransformEnemy_.scale_ = {0.5f, 0.5f, 0.5f};
+	worldTransformEnemy_.Initialize();
+
+
 
 }
 //更新
@@ -69,6 +81,8 @@ void GameScene::Update() {
 	
 	PlayerUpdate();
 	BeamUpdate();
+	EnemyUpdate();
+	
 
 }
 
@@ -133,6 +147,42 @@ void GameScene::BeamBorn() {
 		worldTransformBeam_.translation_.z = worldTransformPlayer_.translation_.z;
 	}
 }
+void GameScene::EnemyUpdate() {
+	
+	EnemyMove();
+	EnemyBorn();
+	if (worldTransformEnemy_.translation_.z<-5.0f) {
+		EnemyFlag_ = 0;
+	}
+	worldTransformEnemy_.matWorld_ = MakeAffineMatrix(
+	    worldTransformEnemy_.scale_, worldTransformPlayer_.rotation_,
+	    worldTransformEnemy_.translation_);
+
+	worldTransformEnemy_.TransferMatrix();
+}
+
+void GameScene::EnemyMove() {
+
+	worldTransformEnemy_.translation_.z -= 0.5f;
+	worldTransformEnemy_.rotation_.x -= 0.1f;
+
+}
+
+void GameScene::EnemyBorn() {
+	if (EnemyFlag_==0) {
+		EnemyFlag_ = 1;
+		worldTransformEnemy_.translation_.z = 40.0f;
+	int x = rand() % 80;
+	float x2 = (float)x / 10 - 4;
+	worldTransformEnemy_.translation_.x = x2;
+	}
+
+
+}
+
+
+
+
     //描画
 void GameScene::Draw() {
 
@@ -169,6 +219,12 @@ void GameScene::Draw() {
 	//ビーム
 	if (BeamFlag_ == 1) {
 		modelStage_->Draw(worldTransformBeam_, viewProjection_, textureHandleBeam_);
+	}
+
+	//エネミー
+	if (EnemyFlag_ == 1) {
+
+		modelStage_->Draw(worldTransformEnemy_, viewProjection_, textureHandleEnemy_);
 	}
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
