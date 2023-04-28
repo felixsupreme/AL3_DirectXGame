@@ -13,6 +13,9 @@ GameScene::~GameScene() {
 	delete modelStage_;
 	//プレイヤー
 	delete modelPlayer_;
+	//ビーム
+	delete modelBeam_;
+
 
 }
 //初期化
@@ -53,13 +56,19 @@ void GameScene::Initialize() {
 	worldTransformPlayer_.scale_ = {0.5f, 0.5f, 0.5f};
 	worldTransformPlayer_.Initialize();
 
+	//ビーム
+	textureHandleBeam_ = TextureManager::Load("Beam.png");
+	modelBeam_ = Model::Create();
+	worldTransformBeam_.scale_ = {0.2f, 0.2f, 0.2f};
+	worldTransformBeam_.Initialize();
+	
 
 }
 //更新
 void GameScene::Update() { 
 	
 	PlayerUpdate();
-
+	BeamUpdate();
 
 }
 
@@ -72,13 +81,13 @@ void GameScene::PlayerUpdate() {
 	if (input_->PushKey(DIK_LEFT)) {
 		worldTransformPlayer_.translation_.x -= 0.1f;
 	}
-
-		if (worldTransformPlayer_.translation_.x<-4) {
-			worldTransformPlayer_.translation_.x == -4;
-		}
-		if (worldTransformPlayer_.translation_.x>4) {
-			worldTransformPlayer_.translation_.x == 4;
-		}
+	if (worldTransformPlayer_.translation_.x>=4.0f) {
+		worldTransformPlayer_.translation_.x = 4.0f;
+	}
+	if (worldTransformPlayer_.translation_.x<=-4.0f) {
+		worldTransformPlayer_.translation_.x = -4.0f;
+	}
+	
 
 	worldTransformPlayer_.matWorld_ = MakeAffineMatrix(
 	    worldTransformPlayer_.scale_, worldTransformPlayer_.rotation_,
@@ -87,7 +96,43 @@ void GameScene::PlayerUpdate() {
 	worldTransformPlayer_.TransferMatrix();
 
 }
+void GameScene::BeamUpdate() {
 
+	
+	BeamMove();
+	BeamBorn();
+
+
+	worldTransformBeam_.matWorld_ = MakeAffineMatrix(
+		worldTransformBeam_.scale_,worldTransformBeam_.rotation_,
+		worldTransformBeam_.translation_
+	);
+	worldTransformBeam_.TransferMatrix();
+	
+
+
+}
+void GameScene::BeamMove() {
+	if (BeamFlag_==0) {
+		return;
+	}
+	worldTransformBeam_.translation_.z += 0.3f;
+	worldTransformBeam_.rotation_.x += 0.1f;
+	if (worldTransformBeam_.translation_.z>40.f) {
+		BeamFlag_ = 0;
+	}
+	
+}
+void GameScene::BeamBorn() {
+	if (BeamFlag_ == 1) {
+		return;
+	}
+	if (input_->TriggerKey(DIK_SPACE)) {
+		BeamFlag_ = 1;
+		worldTransformBeam_.translation_.x = worldTransformPlayer_.translation_.x;
+		worldTransformBeam_.translation_.z = worldTransformPlayer_.translation_.z;
+	}
+}
     //描画
 void GameScene::Draw() {
 
@@ -120,6 +165,11 @@ void GameScene::Draw() {
 
 	//プレイヤー
 	modelStage_->Draw(worldTransformPlayer_, viewProjection_, textureHandlePlayer_);
+
+	//ビーム
+	if (BeamFlag_ == 1) {
+		modelStage_->Draw(worldTransformBeam_, viewProjection_, textureHandleBeam_);
+	}
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
